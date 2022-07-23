@@ -1,0 +1,4 @@
+```
+zypper install libxcb-devel
+
+```
