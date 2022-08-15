@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "stdarg.h": "c",
+        "stdio.h": "c",
+        "stdint.h": "c",
+        "xcb_renderutil.h": "c",
+        "render.h": "c",
+        "xcbshow.h": "c",
+        "stdlib.h": "c",
+        "string.h": "c",
+        "unistd.h": "c",
+        "xcb.h": "c",
+        "stddef.h": "c"
+    }
+}
