@@ -1,3 +1,7 @@
+use std::slice;
+
+use rayon::prelude::{IndexedParallelIterator, IntoParallelRefMutIterator, ParallelIterator};
+
 mod ffi {
     #![allow(non_upper_case_globals)]
     #![allow(non_camel_case_types)]
@@ -42,6 +46,32 @@ impl XcbShow {
         Self {
             raw_window,
             raw_image,
+        }
+    }
+
+    pub fn resize_image(&self, width: u16, height: u16) {
+        unsafe {
+            ffi::resize_image(self.raw_window, self.raw_image, width, height);
+        }
+    }
+
+    pub fn show_image(&self) {
+        unsafe {
+            ffi::show_image(self.raw_window, self.raw_image);
+        }
+    }
+
+    pub fn modify_image<Op>(&self, op: Op)
+    where
+        Op: Fn((usize, usize), &mut u32) + Sync + Send,
+    {
+        unsafe {
+            let image = *self.raw_image;
+            let width = (*image.xcb_image).width as usize;
+            slice::from_raw_parts_mut(image.pixel, image.pixel_count.try_into().unwrap())
+                .par_iter_mut()
+                .enumerate()
+                .for_each(|(n, p)| op((n / width, n % width), p))
         }
     }
 

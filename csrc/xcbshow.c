@@ -131,10 +131,6 @@ void show_image(window_t *window,
 {
     printf("show_image\n");
     fflush(stdout);
-    for (size_t i = 0; i < image->pixel_count; i++)
-    {
-        image->pixel[i] = 0xff0000;
-    }
     xcb_image_put(window->xcb_conn, window->xcb_window,
                   window->xcb_gc, image->xcb_image,
                   0, 0, 0);

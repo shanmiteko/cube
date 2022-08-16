@@ -2,7 +2,7 @@
 use std::{env, error, path::Path, process::Command};
 
 fn main() -> Result<(), Box<dyn error::Error>> {
-    let out_dir = env::var("OUT_DIR").unwrap();
+    let out_dir = env::var("OUT_DIR")?;
 
     Command::new("cc")
         .args(["-Wall", "-Werror"])
@@ -27,18 +27,11 @@ fn main() -> Result<(), Box<dyn error::Error>> {
 
     bindgen::Builder::default()
         .header("csrc/xcbshow.h")
-        .clang_arg("-I/usr/lib64/gcc/x86_64-suse-linux/12/include/")
-        .allowlist_type("window_t")
-        .allowlist_type("image_t")
-        .allowlist_type("event_t")
-        .allowlist_function("create_image")
-        .allowlist_function("show_image")
-        .allowlist_function("resize_image")
-        .allowlist_function("destroy_image")
-        .allowlist_function("create_window")
-        .allowlist_function("destroy_window")
-        .allowlist_function("wait_for_event")
-        .allowlist_function("destroy_event")
+        .clang_arg(format!(
+            "-I{}",
+            env::var("GCC_INCLUDE").map_err(|e| format!("GCC_INCLUDE {}", e))?
+        ))
+        .allowlist_file("csrc/xcbshow.h")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .generate()?
         .write_to_file(Path::new(&out_dir).join("bindings.rs"))?;
