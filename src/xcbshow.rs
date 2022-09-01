@@ -13,16 +13,32 @@ mod ffi {
 pub enum Event {
     Noop,
     Close,
-    Expose {
-        width: u16,
-        height: u16,
-    },
-    Interact {
-        x: i16,
-        y: i16,
-        state: u16,
-        detail: u8,
-    },
+    Expose { width: u16, height: u16 },
+    Interact(InteractKind),
+}
+
+#[derive(Debug)]
+pub enum InteractKind<Step = i16, Pos = (Step, Step)> {
+    KeyPress { state: InteractDevice, key: u8 },
+    LeftPress { state: InteractDevice, pos: Pos },
+    LeftRelease { state: InteractDevice, pos: Pos },
+    Wheel { state: InteractDevice, step: Step },
+    RightPress { state: InteractDevice, pos: Pos },
+    RightRelease { state: InteractDevice, pos: Pos },
+    Move { state: InteractDevice, pos: Pos },
+}
+
+#[derive(Debug)]
+pub enum InteractDevice {
+    Mouse(Mouse),
+    KeyBoard(u16),
+}
+
+#[derive(Debug)]
+pub enum Mouse {
+    Left,
+    Right,
+    Wheel,
 }
 
 pub struct XcbShow {
@@ -94,12 +110,71 @@ impl XcbShow {
                     (w, h) if w > 1 && h > 1 => Event::Expose { width, height },
                     _ => Event::Noop,
                 },
-                3 => Event::Interact {
-                    x,
-                    y,
-                    state,
-                    detail,
+                3 => match state {
+                    256 => Event::Interact(InteractKind::Move {
+                        state: InteractDevice::Mouse(Mouse::Left),
+                        pos: (x, y),
+                    }),
+                    512 => Event::Interact(InteractKind::Move {
+                        state: InteractDevice::Mouse(Mouse::Wheel),
+                        pos: (x, y),
+                    }),
+                    1024 => Event::Interact(InteractKind::Move {
+                        state: InteractDevice::Mouse(Mouse::Right),
+                        pos: (x, y),
+                    }),
+                    _ => Event::Noop,
                 },
+                4 => match detail {
+                    1 => Event::Interact(InteractKind::LeftPress {
+                        state: InteractDevice::KeyBoard(state),
+                        pos: (x, y),
+                    }),
+                    2 => Event::Interact(InteractKind::Wheel {
+                        state: InteractDevice::KeyBoard(state),
+                        step: 0,
+                    }),
+                    3 => Event::Interact(InteractKind::RightPress {
+                        state: InteractDevice::KeyBoard(state),
+                        pos: (x, y),
+                    }),
+                    4 => Event::Interact(InteractKind::Wheel {
+                        state: InteractDevice::KeyBoard(state),
+                        step: 1,
+                    }),
+                    5 => Event::Interact(InteractKind::Wheel {
+                        state: InteractDevice::KeyBoard(state),
+                        step: -1,
+                    }),
+                    _ => Event::Noop,
+                },
+                5 => match detail {
+                    1 => Event::Interact(InteractKind::LeftRelease {
+                        state: InteractDevice::KeyBoard(state),
+                        pos: (x, y),
+                    }),
+                    2 => Event::Interact(InteractKind::Wheel {
+                        state: InteractDevice::KeyBoard(state),
+                        step: 0,
+                    }),
+                    3 => Event::Interact(InteractKind::RightRelease {
+                        state: InteractDevice::KeyBoard(state),
+                        pos: (x, y),
+                    }),
+                    4 => Event::Interact(InteractKind::Wheel {
+                        state: InteractDevice::KeyBoard(state),
+                        step: 1,
+                    }),
+                    5 => Event::Interact(InteractKind::Wheel {
+                        state: InteractDevice::KeyBoard(state),
+                        step: -1,
+                    }),
+                    _ => Event::Noop,
+                },
+                6 => Event::Interact(InteractKind::KeyPress {
+                    key: detail,
+                    state: InteractDevice::KeyBoard(state),
+                }),
                 _ => Event::Noop,
             }
         }

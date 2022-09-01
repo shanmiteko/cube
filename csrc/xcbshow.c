@@ -1,10 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "xcbshow.h"
-
-void die(const char *err)
-{
-    fprintf(stderr, "xcbshow: %s\n", err);
-    exit(1);
-}
 
 xcb_atom_t
 get_atom(xcb_connection_t *conn,
@@ -23,7 +20,7 @@ get_atom(xcb_connection_t *conn,
     {
         free(reply);
         free(error);
-        die("xcb_intern_atom failed");
+        dieln("%s", "xcb_intern_atom failed");
     }
 
     atom = reply->atom;
@@ -36,21 +33,20 @@ window_t *
 create_window(uint16_t width,
               uint16_t height)
 {
-    printf("create_window\n");
-    fflush(stdout);
+    debug_println("width: %d, height: %d", width, height);
     window_t *window = malloc(sizeof(window_t));
 
     if (xcb_connection_has_error(window->xcb_conn = xcb_connect(NULL, NULL)))
     {
         free(window);
-        die("can't open display");
+        dieln("%s", "can't open display");
     }
 
     if (NULL == (window->xcb_screen = xcb_setup_roots_iterator(xcb_get_setup(window->xcb_conn)).data))
     {
         xcb_disconnect(window->xcb_conn);
         free(window);
-        die("can't get default screen");
+        dieln("%s", "can't get default screen");
     }
 
     window->xcb_window = xcb_generate_id(window->xcb_conn);
@@ -90,8 +86,7 @@ create_window(uint16_t width,
 
 void destroy_window(window_t *window)
 {
-    printf("destroy_window\n");
-    fflush(stdout);
+    debug_println("window: %p", window);
     xcb_free_gc(window->xcb_conn, window->xcb_gc);
     xcb_destroy_window(window->xcb_conn, window->xcb_window);
     xcb_disconnect(window->xcb_conn);
@@ -103,19 +98,18 @@ create_image(window_t *window,
              uint16_t width,
              uint16_t height)
 {
-    printf("create_image\n");
-    fflush(stdout);
+    debug_println("window: %p, width: %d, height: %d", window, width, height);
     image_t *image = malloc(sizeof(image_t));
     if (NULL == image)
     {
-        die("error while calling malloc, no memory available");
+        dieln("%s", "error while calling malloc, no memory available");
     }
     image->pixel_count = width * height;
     image->pixel = malloc(image->pixel_count * sizeof(uint32_t));
     if (NULL == image->pixel)
     {
         free(image);
-        die("error while calling malloc, no memory available");
+        dieln("%s", "error while calling malloc, no memory available");
     }
     image->xcb_image = xcb_image_create_native(
         window->xcb_conn, width, height,
@@ -129,8 +123,7 @@ create_image(window_t *window,
 void show_image(window_t *window,
                 image_t *image)
 {
-    printf("show_image\n");
-    fflush(stdout);
+    debug_println("window: %p, image: %p", window, image);
     xcb_image_put(window->xcb_conn, window->xcb_window,
                   window->xcb_gc, image->xcb_image,
                   0, 0, 0);
@@ -142,8 +135,7 @@ void resize_image(window_t *window,
                   uint16_t width,
                   uint16_t height)
 {
-    printf("resize_image\n");
-    fflush(stdout);
+    debug_println("window: %p, ori_image: %p, width: %d, height: %d", window, ori_image, width, height);
     if (ori_image->xcb_image->width != width ||
         ori_image->xcb_image->height != height)
     {
@@ -154,22 +146,20 @@ void resize_image(window_t *window,
 
 void destroy_image(image_t *image)
 {
-    printf("destroy_image\n");
-    fflush(stdout);
+    debug_println("image: %p", image);
     xcb_image_destroy(image->xcb_image);
     free(image);
 }
 
 event_t *wait_for_event(window_t *window)
 {
-    printf("wait_for_event\n");
-    fflush(stdout);
+    debug_println("window: %p", window);
     xcb_generic_event_t *ev = xcb_wait_for_event(window->xcb_conn);
     event_t *event = malloc(sizeof(event_t));
 
     if (NULL == event)
     {
-        die("error while calling malloc, no memory available");
+        dieln("%s", "error while calling malloc, no memory available");
     }
     switch (ev->response_type & ~0x80)
     {
@@ -203,7 +193,7 @@ event_t *wait_for_event(window_t *window)
     case XCB_BUTTON_PRESS:
     {
         xcb_button_press_event_t *bpev = (xcb_button_press_event_t *)ev;
-        event->kind = 3;
+        event->kind = 4;
         event->x = bpev->event_x;
         event->y = bpev->event_y;
         event->state = bpev->state;
@@ -213,7 +203,7 @@ event_t *wait_for_event(window_t *window)
     case XCB_BUTTON_RELEASE:
     {
         xcb_button_release_event_t *brev = (xcb_button_release_event_t *)ev;
-        event->kind = 3;
+        event->kind = 5;
         event->x = brev->event_x;
         event->y = brev->event_y;
         event->state = brev->state;
@@ -223,7 +213,7 @@ event_t *wait_for_event(window_t *window)
     case XCB_KEY_PRESS:
     {
         xcb_key_press_event_t *kpev = (xcb_key_press_event_t *)ev;
-        event->kind = 3;
+        event->kind = 6;
         event->x = kpev->event_x;
         event->y = kpev->event_y;
         event->state = kpev->state;
@@ -239,7 +229,6 @@ event_t *wait_for_event(window_t *window)
 
 void destroy_event(event_t *event)
 {
-    printf("destroy_event\n");
-    fflush(stdout);
+    debug_println("event: %p", event);
     free(event);
 }

@@ -1,10 +1,34 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <xcb/xcb.h>
+#ifndef XCBSHOW_H
+#define XCBSHOW_H
+
 #include <xcb/xcb_image.h>
-#include <xcb/xproto.h>
+
+#ifndef DEBUG
+#define DEBUG 0
+#endif
+
+#define LOG(stream, head, fmt, ...) \
+    fprintf(stream, "%s %s: %s(): " fmt "\n", head, __FILE__, __func__, __VA_ARGS__)
+
+#ifndef dieln
+#define dieln(fmt, ...)                           \
+    do                                            \
+    {                                             \
+        LOG(stderr, "[ERROR]", fmt, __VA_ARGS__); \
+        exit(0);                                  \
+    } while (0)
+#endif
+
+#ifndef debug_println
+#define debug_println(fmt, ...)                       \
+    do                                                \
+    {                                                 \
+        if (DEBUG)                                    \
+        {                                             \
+            LOG(stdout, "[DEBUG]", fmt, __VA_ARGS__); \
+        }                                             \
+    } while (0)
+#endif
 
 typedef struct window_t
 {
@@ -31,8 +55,6 @@ typedef struct event_t
     uint8_t detail;
     uint8_t kind;
 } event_t;
-
-void die(const char *err);
 
 xcb_atom_t
 get_atom(xcb_connection_t *conn, const char *name);
@@ -61,3 +83,5 @@ void destroy_image(image_t *image);
 event_t *wait_for_event(window_t *window);
 
 void destroy_event(event_t *event);
+
+#endif

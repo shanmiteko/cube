@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "xproto.h": "c",
+        "xcb_image.h": "c",
+        "stdlib.h": "c",
+        "cstdlib": "c"
+    }
+}

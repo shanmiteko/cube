@@ -4,11 +4,23 @@ use std::{env, error, path::Path, process::Command};
 fn main() -> Result<(), Box<dyn error::Error>> {
     let out_dir = env::var("OUT_DIR")?;
 
+    let target = format!("{}/xcbshow.o", out_dir);
+    let mut ccargs = vec![
+        "-Wall",
+        "-Werror",
+        "-c",
+        "csrc/xcbshow.c",
+        "-fPIC",
+        "-o",
+        &target,
+    ];
+    if env::var("PROFILE")? == "release" {
+        ccargs.push("-O3")
+    } else {
+        ccargs.push("-DDEBUG=1");
+    }
     Command::new("cc")
-        .args(["-Wall", "-Werror"])
-        .args(["-c", "csrc/xcbshow.c"])
-        .args(["-fPIC"])
-        .args(["-o", &format!("{}/xcbshow.o", out_dir)])
+        .args(ccargs)
         .spawn()?
         .wait_with_output()?
         .status
