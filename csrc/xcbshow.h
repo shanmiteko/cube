@@ -1,11 +1,9 @@
-#ifndef XCBSHOW_H
-#define XCBSHOW_H
+#ifndef __XCBSHOW_H__
+#define __XCBSHOW_H__
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <xcb/xcb_image.h>
-
-#ifndef DEBUG
-#define DEBUG 0
-#endif
 
 #define LOG(stream, head, fmt, ...) \
     fprintf(stream, "%s %s: %s(): " fmt "\n", head, __FILE__, __func__, __VA_ARGS__)
@@ -19,16 +17,15 @@
     } while (0)
 #endif
 
-#ifndef debug_println
-#define debug_println(fmt, ...)                       \
-    do                                                \
-    {                                                 \
-        if (DEBUG)                                    \
-        {                                             \
-            LOG(stdout, "[DEBUG]", fmt, __VA_ARGS__); \
-        }                                             \
+#if defined(DEBUG)
+#define debug_println(fmt, ...)                   \
+    do                                            \
+    {                                             \
+        LOG(stdout, "[DEBUG]", fmt, __VA_ARGS__); \
     } while (0)
-#endif
+#else
+#define debug_println(fmt, ...)
+#endif // DEBUG
 
 typedef struct window_t
 {
