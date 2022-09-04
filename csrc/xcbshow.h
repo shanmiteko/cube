@@ -75,6 +75,9 @@ void resize_image(window_t *window,
                   uint16_t width,
                   uint16_t height);
 
+void update_image(image_t *ori_image,
+                  const uint32_t *pixel_base);
+
 void destroy_image(image_t *image);
 
 event_t *wait_for_event(window_t *window);

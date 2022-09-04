@@ -103,7 +103,7 @@ create_image(window_t *window,
         dieln("%s", "error while calling malloc, no memory available");
     }
     image->pixel_count = width * height;
-    image->pixel = malloc(image->pixel_count * sizeof(uint32_t));
+    image->pixel = calloc(image->pixel_count, sizeof(uint32_t));
     if (NULL == image->pixel)
     {
         free(image);
@@ -140,6 +140,13 @@ void resize_image(window_t *window,
         destroy_image(ori_image);
         ori_image = create_image(window, width, height);
     }
+}
+
+void update_image(image_t *ori_image,
+                  const uint32_t *pixel_base)
+{
+    debug_println("ori_image: %p, pixel_base: %p, pixel_0: %x, pixel_1: %x", ori_image, pixel_base, pixel_base[0], pixel_base[1]);
+    memcpy(ori_image->pixel, (uint32_t *)pixel_base, sizeof(uint32_t) * ori_image->pixel_count);
 }
 
 void destroy_image(image_t *image)

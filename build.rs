@@ -11,12 +11,14 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         "-c",
         "csrc/xcbshow.c",
         "-fPIC",
-        "-O3",
         "-o",
         &target,
     ];
     if env::var("PROFILE")? == "debug" {
         ccargs.push("-DDEBUG=1");
+        ccargs.push("-g")
+    } else {
+        ccargs.push("-O3");
     }
     Command::new("cc")
         .args(ccargs)
