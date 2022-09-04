@@ -63,7 +63,7 @@ impl XcbShow {
         }
     }
 
-    pub fn resize(&self, width: u16, height: u16) {
+    pub fn resize_image(&self, width: u16, height: u16) {
         unsafe {
             ffi::resize_image(self.raw_window, self.raw_image, width, height);
         }
