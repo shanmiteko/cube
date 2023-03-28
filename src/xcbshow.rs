@@ -1,5 +1,3 @@
-use std::slice;
-
 mod ffi {
     #![allow(non_upper_case_globals)]
     #![allow(non_camel_case_types)]
@@ -7,6 +5,9 @@ mod ffi {
     #![allow(dead_code)]
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
+
+type Step = i16;
+type Pos = (Step, Step);
 
 pub enum Event {
     Noop,
@@ -16,7 +17,7 @@ pub enum Event {
 }
 
 #[derive(Debug)]
-pub enum InteractKind<Step = i16, Pos = (Step, Step)> {
+pub enum InteractKind {
     KeyPress { state: InteractDevice, key: u8 },
     LeftPress { state: InteractDevice, pos: Pos },
     LeftRelease { state: InteractDevice, pos: Pos },
@@ -88,7 +89,7 @@ impl XcbShow {
         self.show_image();
     }
 
-    pub fn events(&self) -> Event {
+    pub fn events(&mut self) -> Event {
         unsafe {
             let raw_event = ffi::wait_for_event(self.raw_window);
             let ffi::event_t {

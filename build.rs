@@ -28,8 +28,8 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         .exit_ok()?;
 
     Command::new("ar")
-        .args(&["crus", "libxcbshow.a", "xcbshow.o"])
-        .current_dir(&Path::new(&out_dir))
+        .args(["crus", "libxcbshow.a", "xcbshow.o"])
+        .current_dir(Path::new(&out_dir))
         .status()?;
 
     println!("cargo:rustc-link-search=native={}", out_dir);
